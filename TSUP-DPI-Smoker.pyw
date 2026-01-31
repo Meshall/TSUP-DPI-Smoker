@@ -14,6 +14,9 @@ Features:
 - DNS redirection
 - HTTP Host header tricks
 """
+import ctypes
+from ctypes import c_int, byref, sizeof, Structure
+from PySide6.QtCore import Qt
 import sys
 import struct
 import threading
@@ -684,155 +687,164 @@ class PacketFragmenter(QThread):
    def stop(self):
        """Stop capture"""
        self.running = False
+       
+class MARGINS(Structure):
+    _fields_ = [("left", c_int), ("right", c_int), ("top", c_int), ("bottom", c_int)]
 
+def enable_acrylic(hwnd):
+    margins = MARGINS(-1, -1, -1, -1)
+    ctypes.windll.dwmapi.DwmExtendFrameIntoClientArea(hwnd, byref(margins))
+    ctypes.windll.dwmapi.DwmSetWindowAttribute(hwnd, 38, byref(c_int(3)), sizeof(c_int))
 
 class CyberDPITool(QWidget):
-   def __init__(self):
-       super().__init__()
-       self.setWindowTitle('◈ DPI KILLSWITCH v5.0 - WINDOWS RAW MODE ◈')
-       self.setGeometry(100, 100, 900, 850)
-       self.setStyleSheet("""
-           QWidget {
-               background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                   stop:0 #0a0a0a, stop:1 #000000);
-               color: #00ff41;
-               font-family: 'Consolas', 'Courier New', monospace;
-           }
-           QPushButton {
-               background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                   stop:0 #1a4d1a, stop:1 #0d260d);
-               border: 2px solid #00ff41;
-               border-radius: 8px;
-               padding: 14px 28px;
-               color: #00ff41;
-               font-size: 14px;
-               font-weight: bold;
-               text-transform: uppercase;
-               letter-spacing: 2px;
-           }
-           QPushButton:hover {
-               background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                   stop:0 #2d7a2d, stop:1 #1a4d1a);
-               border: 2px solid #00ffaa;
-               color: #00ffaa;
-           }
-           QPushButton:pressed {
-               background: #00ff41;
-               color: #000;
-           }
-           QPushButton:disabled {
-               background: #1a1a1a;
-               border: 2px solid #333;
-               color: #444;
-           }
-           QSpinBox, QLineEdit {
-               background: #0a0a0a;
-               border: 2px solid #00ff41;
-               border-radius: 5px;
-               padding: 8px;
-               color: #00ff41;
-               font-size: 13px;
-               font-weight: bold;
-           }
-           QSpinBox::up-button, QSpinBox::down-button {
-               background: #1a4d1a;
-               border: 1px solid #00ff41;
-               width: 22px;
-           }
-           QSpinBox::up-button:hover, QSpinBox::down-button:hover {
-               background: #00ff41;
-           }
-           QTextEdit {
-               background: #000000;
-               border: 2px solid #00ff41;
-               border-radius: 8px;
-               color: #00ff41;
-               font-family: 'Consolas', monospace;
-               font-size: 11px;
-               padding: 12px;
-               selection-background-color: #00ff41;
-               selection-color: #000;
-           }
-           QLabel {
-               color: #00ffaa;
-               font-size: 12px;
-               font-weight: bold;
-           }
-           QFrame {
-               background: rgba(5, 5, 5, 200);
-               border: 2px solid #00ff41;
-               border-radius: 10px;
-           }
-           QGroupBox {
-               background: rgba(5, 5, 5, 200);
-               border: 2px solid #00ff41;
-               border-radius: 8px;
-               margin-top: 10px;
-               padding-top: 10px;
-               font-weight: bold;
-               color: #00ffaa;
-           }
-           QGroupBox::title {
-               subcontrol-origin: margin;
-               left: 10px;
-               padding: 0 5px;
-           }
-           QComboBox {
-               background: #0a0a0a;
-               border: 2px solid #00ff41;
-               border-radius: 5px;
-               padding: 8px;
-               color: #00ff41;
-               font-weight: bold;
-           }
-           QComboBox::drop-down {
-               border: none;
-           }
-           QComboBox QAbstractItemView {
-               background: #0a0a0a;
-               border: 2px solid #00ff41;
-               color: #00ff41;
-               selection-background-color: #00ff41;
-               selection-color: #000;
-           }
-           QCheckBox {
-               color: #00ff41;
-               font-size: 11px;
-               spacing: 8px;
-           }
-           QCheckBox::indicator {
-               width: 18px;
-               height: 18px;
-               border: 2px solid #00ff41;
-               border-radius: 4px;
-               background: #0a0a0a;
-           }
-           QCheckBox::indicator:checked {
-               background: #00ff41;
-           }
-           QTabWidget::pane {
-               border: 2px solid #00ff41;
-               border-radius: 8px;
-               background: rgba(5, 5, 5, 200);
-           }
-           QTabBar::tab {
-               background: #0a0a0a;
-               border: 2px solid #00ff41;
-               border-bottom: none;
-               border-radius: 5px 5px 0 0;
-               padding: 8px 16px;
-               color: #00ff41;
-               font-weight: bold;
-           }
-           QTabBar::tab:selected {
-               background: #1a4d1a;
-           }
-           QScrollArea {
-               border: none;
-               background: transparent;
-           }
-       """)
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle('◈ DPI KILLSWITCH v5.0 - WINDOWS RAW MODE ◈')
+        self.setGeometry(100, 100, 900, 850)
+        
+        # ADD THESE 2 LINES
+        self.setAttribute(Qt.WA_TranslucentBackground)
+        self.setWindowFlags(self.windowFlags() | Qt.FramelessWindowHint)  # Required for blur
+        
+        self.setStyleSheet("""
 
+
+QWidget {
+           background: rgba(30, 30, 30, 0.6);
+           color: #ffffff;
+           font-family: 'Segoe UI', 'Consolas', monospace;
+       }
+       QPushButton {
+           background: rgba(255, 255, 255, 0.08);
+           border: 1px solid rgba(255, 255, 255, 0.15);
+           border-radius: 8px;
+           padding: 14px 28px;
+           color: #ffffff;
+           font-size: 14px;
+           font-weight: bold;
+           text-transform: uppercase;
+           letter-spacing: 2px;
+       }
+       QPushButton:hover {
+           background: rgba(255, 255, 255, 0.15);
+           border: 1px solid rgba(255, 255, 255, 0.3);
+       }
+       QPushButton:pressed {
+           background: rgba(255, 255, 255, 0.25);
+       }
+       QPushButton:disabled {
+           background: rgba(255, 255, 255, 0.03);
+           border: 1px solid rgba(255, 255, 255, 0.05);
+           color: rgba(255, 255, 255, 0.3);
+       }
+       QSpinBox, QLineEdit {
+           background: rgba(255, 255, 255, 0.06);
+           border: 1px solid rgba(255, 255, 255, 0.12);
+           border-radius: 5px;
+           padding: 8px;
+           color: #ffffff;
+           font-size: 13px;
+           font-weight: bold;
+       }
+       QSpinBox::up-button, QSpinBox::down-button {
+           background: rgba(255, 255, 255, 0.08);
+           border: 1px solid rgba(255, 255, 255, 0.1);
+           width: 22px;
+       }
+       QSpinBox::up-button:hover, QSpinBox::down-button:hover {
+           background: rgba(255, 255, 255, 0.15);
+       }
+       QTextEdit {
+           background: rgba(255, 255, 255, 0.04);
+           border: 1px solid rgba(255, 255, 255, 0.1);
+           border-radius: 8px;
+           color: #ffffff;
+           font-family: 'Consolas', monospace;
+           font-size: 11px;
+           padding: 12px;
+           selection-background-color: rgba(255, 255, 255, 0.2);
+           selection-color: #000;
+       }
+       QLabel {
+           color: rgba(255, 255, 255, 0.85);
+           font-size: 12px;
+           font-weight: bold;
+       }
+       QFrame {
+           background: rgba(255, 255, 255, 0.05);
+           border: 1px solid rgba(255, 255, 255, 0.1);
+           border-radius: 10px;
+       }
+       QGroupBox {
+           background: rgba(255, 255, 255, 0.05);
+           border: 1px solid rgba(255, 255, 255, 0.1);
+           border-radius: 8px;
+           margin-top: 10px;
+           padding-top: 10px;
+           font-weight: bold;
+           color: rgba(255, 255, 255, 0.85);
+       }
+       QGroupBox::title {
+           subcontrol-origin: margin;
+           left: 10px;
+           padding: 0 5px;
+       }
+       QComboBox {
+           background: rgba(255, 255, 255, 0.06);
+           border: 1px solid rgba(255, 255, 255, 0.12);
+           border-radius: 5px;
+           padding: 8px;
+           color: #ffffff;
+           font-weight: bold;
+       }
+       QComboBox::drop-down {
+           border: none;
+       }
+       QComboBox QAbstractItemView {
+           background: rgba(30, 30, 30, 0.95);
+           border: 1px solid rgba(255, 255, 255, 0.15);
+           color: #ffffff;
+           selection-background-color: rgba(255, 255, 255, 0.15);
+           selection-color: #fff;
+       }
+       QCheckBox {
+           color: #ffffff;
+           font-size: 11px;
+           spacing: 8px;
+       }
+       QCheckBox::indicator {
+           width: 18px;
+           height: 18px;
+           border: 1px solid rgba(255, 255, 255, 0.2);
+           border-radius: 4px;
+           background: rgba(255, 255, 255, 0.06);
+       }
+       QCheckBox::indicator:checked {
+           background: rgba(255, 255, 255, 0.3);
+       }
+       QTabWidget::pane {
+           border: 1px solid rgba(255, 255, 255, 0.1);
+           border-radius: 8px;
+           background: rgba(255, 255, 255, 0.05);
+       }
+       QTabBar::tab {
+           background: rgba(255, 255, 255, 0.03);
+           border: 1px solid rgba(255, 255, 255, 0.08);
+           border-bottom: none;
+           border-radius: 5px 5px 0 0;
+           padding: 8px 16px;
+           color: rgba(255, 255, 255, 0.6);
+           font-weight: bold;
+       }
+       QTabBar::tab:selected {
+           background: rgba(255, 255, 255, 0.1);
+           color: #ffffff;
+       }
+       QScrollArea {
+           border: none;
+           background: transparent;
+       }
+       """)
        # Initialize threads
        self.thread = None
        self.quic_blocker = None
